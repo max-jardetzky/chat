@@ -74,7 +74,12 @@ func main() {
 		for scanner.Scan() {
 			switch scanner.Text() {
 			case "help":
-				fmt.Println("Commands: users, mute, unmute, delprevlogs, shutdown")
+				fmt.Println("Commands: say, users, mute, unmute, delprevlogs, shutdown")
+			case "say":
+				fmt.Print("Enter message: ")
+				scanner.Scan()
+				log("SERVER: " + scanner.Text())
+				sendAll("SERVER: " + scanner.Text())
 			case "users":
 				fmt.Println(getUsers(true))
 			case "mute":
@@ -92,7 +97,17 @@ func main() {
 				}
 				log("Deleted previous logs.")
 			case "shutdown":
-				shutdown("admin command")
+				for {
+					fmt.Print("Are you sure? (y/n) ")
+					scanner.Scan()
+					if scanner.Text() == "y" {
+						shutdown("admin command")
+						break
+					}
+					if scanner.Text() == "n" {
+						break
+					}
+				}
 			default:
 				fmt.Println("invalid command", scanner.Text())
 			}
