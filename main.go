@@ -46,6 +46,9 @@ func main() {
 	initTimeStr := strings.Replace(time.Now().String()[:19], ":", "-", -1)
 	fmt.Println("Server startup process initiated. Type `help` for help.")
 
+	if _, err := os.Stat("logs"); os.IsNotExist(err) {
+		os.Mkdir("logs", 0755)
+	}
 	f, err = os.Create(filepath.Join("logs", initTimeStr+".txt"))
 	check(err)
 
