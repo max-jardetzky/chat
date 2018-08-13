@@ -1,0 +1,12 @@
+[03:40:58] Listening on: 192.168.1.137
+[03:51:35] hello (192.168.1.137) connected.
+[03:51:39] hello (192.168.1.137) says: yaya
+[03:51:39] hello (192.168.1.137) says: adstasd
+[03:51:40] hello (192.168.1.137) says: tasd
+[03:51:40] hello (192.168.1.137) says: te
+[03:51:40] hello (192.168.1.137) says: tasd
+[03:52:00] 192.168.1.137 muted.
+[03:52:13] 192.168.1.137 unmuted.
+[03:52:15] hello (192.168.1.137) says: yaya
+[03:52:21] Deleted previous logs.
+[03:52:25] (SERVER) Shutdown by admin command.
