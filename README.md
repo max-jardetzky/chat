@@ -3,7 +3,7 @@ Simple Websocket chat server written in Go.
 
 Instructions:
 - Open the main directory in a command prompt.
-- Run the server using `go build` then `chat` or `go run main.go`
+- Run the server using `go build` or `go run`
 - Type `help` in the command window for admin commands.
 
 As a client:
