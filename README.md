@@ -12,5 +12,5 @@ As a client:
 - Type `/help` in the text box and submit to see client commands.
 
 Features:
-- Real-time message distribution and logging to .txt files
+- Real-time message distribution and logging to .txt files (in the `logs` directory)
 - CLI for admin use
