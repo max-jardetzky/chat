@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"math/rand"
 	"net"
@@ -69,107 +68,9 @@ func main() {
 	}()
 
 	// Admin commands from console
-	go func() {
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			switch scanner.Text() {
-			case "help":
-				fmt.Println("Commands: say, users, mute, unmute, delprevlogs, shutdown")
-			case "say":
-				fmt.Print("Enter message: ")
-				scanner.Scan()
-				log("SERVER: " + scanner.Text())
-				sendAll("SERVER: " + scanner.Text())
-			case "users":
-				fmt.Println(getUsers(true))
-			case "mute":
-				mute(true)
-			case "unmute":
-				mute(false)
-			case "delprevlogs":
-				dirRead, err := os.Open("logs")
-				check(err)
-				files, err := dirRead.Readdir(0)
-				check(err)
-				for i := 0; i < len(files)-1; i++ {
-					err = os.Remove(filepath.Join("logs", files[i].Name()))
-					check(err)
-				}
-				log("Deleted previous logs.")
-			case "shutdown":
-				for {
-					fmt.Print("Are you sure? (y/n) ")
-					scanner.Scan()
-					if scanner.Text() == "y" {
-						shutdown("admin command")
-						break
-					}
-					if scanner.Text() == "n" {
-						break
-					}
-				}
-			default:
-				fmt.Println("invalid command", scanner.Text())
-			}
-		}
+	go launchCLI()
 
-		if scanner.Err() != nil {
-			check(err)
-		}
-	}()
-
-	http.HandleFunc("/chat", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err == nil {
-			client := &Client{conn, "", "", 0}
-			clientList = append(clientList, client)
-
-			defer func() {
-				leavingMsg := client.name + " left."
-				delete(client)
-				if !inShutdown {
-					log(leavingMsg)
-					sendAll(leavingMsg)
-				}
-			}()
-
-			for {
-				// Read message from browser
-				_, msg, err := conn.ReadMessage()
-				if err != nil {
-					return
-				}
-
-				// First login, set *Client values, and connect message.
-				if client.msgCount == 0 {
-					client.name = string(msg)
-
-					ip, _, err := net.SplitHostPort(r.RemoteAddr)
-					check(err)
-					client.ip = ip
-
-					sendClient(client, "(SERVER) Welcome! Type `/help` for a list of commands.")
-
-					connectMsg := " connected."
-					if val, ok := mutedIPs[client.ip]; val && ok {
-						connectMsg += " (MUTED)"
-					}
-					log(client.name + " (" + client.ip + ")" + connectMsg)
-					sendAll(client.name + connectMsg)
-				} else { // Any subsequent incoming messages and mute handling
-					if val, ok := mutedIPs[client.ip]; val && ok {
-						sendIP(client.ip, "(SERVER) Muted.")
-					} else {
-						totalMsg := " says: " + string(msg)
-						log(client.name + " (" + client.ip + ")" + totalMsg)
-						sendAll(client.name + totalMsg)
-					}
-				}
-				client.msgCount++
-			}
-		}
-	})
-
+	http.HandleFunc("/chat", launchHTTP)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
@@ -180,32 +81,127 @@ func main() {
 	srv.ListenAndServe()
 }
 
-func sendIP(ip, msg string) {
-	msg = "[" + time.Now().String()[11:19] + "] " + msg
-	for _, v := range clientList {
-		if v.ip == ip {
-			if err := v.conn.WriteMessage(1, []byte(msg)); err != nil {
-				check(err)
+func launchHTTP(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err == nil {
+		client := &Client{conn, "", "", 0}
+		clientList = append(clientList, client)
+
+		defer func() {
+			leavingMsg := client.name + " left."
+			delete(client)
+			if !inShutdown {
+				log(leavingMsg)
+				sendAll(leavingMsg)
+			}
+		}()
+
+		for {
+			// Read message from browser
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
 				return
 			}
+
+			// First login, set *Client values, and connect message.
+			if client.msgCount == 0 {
+				client.name = string(msg)
+
+				ip, _, err := net.SplitHostPort(r.RemoteAddr)
+				if err != nil {
+					fmt.Println(ip, err)
+				}
+				client.ip = ip
+
+				sendClient(client, "(SERVER) Welcome! Type `/help` for a list of commands.")
+
+				connectMsg := " connected."
+				if val, ok := mutedIPs[client.ip]; val && ok {
+					connectMsg += " (MUTED)"
+				}
+				log(client.name + " (" + client.ip + ")" + connectMsg)
+				sendAll(client.name + connectMsg)
+			} else { // Any subsequent incoming messages and mute handling
+				if val, ok := mutedIPs[client.ip]; val && ok {
+					sendIP(client.ip, "(SERVER) Muted.")
+				} else {
+					totalMsg := " says: " + string(msg)
+					log(client.name + " (" + client.ip + ")" + totalMsg)
+					sendAll(client.name + totalMsg)
+				}
+			}
+			client.msgCount++
 		}
+	}
+}
+
+func launchCLI() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		switch scanner.Text() {
+		case "help":
+			fmt.Println("Commands: say, users, mute, unmute, delprevlogs, shutdown")
+		case "say":
+			fmt.Print("Enter message: ")
+			scanner.Scan()
+			log("SERVER: " + scanner.Text())
+			sendAll("SERVER: " + scanner.Text())
+		case "users":
+			fmt.Println(getUsers(true))
+		case "mute":
+			mute(true)
+		case "unmute":
+			mute(false)
+		case "delprevlogs":
+			dirRead, err := os.Open("logs")
+			check(err)
+			files, err := dirRead.Readdir(0)
+			check(err)
+			for i := 0; i < len(files)-1; i++ {
+				err = os.Remove(filepath.Join("logs", files[i].Name()))
+				check(err)
+			}
+			log("Deleted previous logs.")
+		case "shutdown":
+			for {
+				fmt.Print("Are you sure? (y/n) ")
+				scanner.Scan()
+				if scanner.Text() == "y" {
+					shutdown("admin command")
+					break
+				}
+				if scanner.Text() == "n" {
+					break
+				}
+			}
+		default:
+			fmt.Println("invalid command", scanner.Text())
+		}
+	}
+
+	if scanner.Err() != nil {
+		fmt.Println(err)
 	}
 }
 
 func sendClient(client *Client, msg string) {
 	msg = "[" + time.Now().String()[11:19] + "] " + msg
 	if err := client.conn.WriteMessage(1, []byte(msg)); err != nil {
-		check(err)
+		fmt.Println(err)
 		return
 	}
 }
 
 func sendAll(msg string) {
-	msg = "[" + time.Now().String()[11:19] + "] " + msg
 	for _, v := range clientList {
-		if err := v.conn.WriteMessage(1, []byte(msg)); err != nil {
-			check(err)
-			return
+		sendClient(v, msg)
+	}
+}
+
+func sendIP(ip, msg string) {
+	for _, v := range clientList {
+		if v.ip == ip {
+			sendClient(v, msg)
 		}
 	}
 }
@@ -235,12 +231,14 @@ func shutdown(reason string) {
 	log(shutdownString)
 	for _, v := range clientList {
 		sendIP(v.ip, shutdownString)
-		v.conn.Close()
+		if err = v.conn.Close(); err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	srv.Shutdown(ctx)
+	if err = srv.Shutdown(nil); err != nil {
+		check(err)
+	}
 }
 
 func delete(client *Client) {
