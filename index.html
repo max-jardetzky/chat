@@ -2,21 +2,22 @@
 <html>
   <head>
     <link type="text/css" href="static/css/chat.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="icon" type="image/png" href="static/favicon-32x32.png" sizes="32x32" />
     <title>Chat!</title>
   </head>
   <body>
-    <div id="login">
-      <div id="content">
-        <h1 id="directions">Welcome to Chat!</h1>
-        <input id="nameInput" type="text" placeholder="Username"/>
-        <button id="submitButton" type="submit" onclick="openSocket()">Go</button>
+    <div id="loginContainer" class="container-fluid px-5 pb-5 pt-2">
+      <h1 id="welcome">Welcome to Chat!</h1>
+      <div id="inputForm">
+        <input id="nameInput" type="text" class="textInput p-3" placeholder="Enter a username...">
+        <button id="submitButton" class="btn btn-default" type="submit" onclick="submitUsername()">Go!</button>
       </div>
     </div>
-    <div id="topbar" class="main">
+    <div id="main" class="container-fluid px-5 pb-5 pt-2">
+      <div id="output" class="main p-3 mb-3"></div>
+      <input id="input" class="textInput main p-3" type="text" placeholder="Message"/>
     </div>
-		<div id="output" class="main"></div>
-		<input id="input" class="main" type="text" />
     <script src="static/js/chat.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   </body>

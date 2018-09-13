@@ -36,6 +36,7 @@ var f *os.File
 var mutedIPs map[string]bool
 var err error
 var inShutdown bool
+var printDisabled bool
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -140,7 +141,7 @@ func launchCLI() {
 	for scanner.Scan() {
 		switch scanner.Text() {
 		case "help":
-			fmt.Println("Commands: say, users, mute, unmute, delprevlogs, shutdown")
+			fmt.Println("Commands: say, users, mute, unmute, tmp, delprevlogs, shutdown")
 		case "say":
 			fmt.Print("Enter message: ")
 			scanner.Scan()
@@ -152,6 +153,9 @@ func launchCLI() {
 			mute(true)
 		case "unmute":
 			mute(false)
+		case "tmp":
+			printDisabled = !printDisabled
+			fmt.Println("printing disabled:", printDisabled)
 		case "delprevlogs":
 			dirRead, err := os.Open("logs")
 			check(err)
@@ -218,7 +222,9 @@ func validIP(ip string) bool {
 
 func log(msg string) {
 	logString := "[" + time.Now().String()[11:19] + "] " + msg + "\r\n"
-	fmt.Print(logString)
+	if !printDisabled {
+		fmt.Print(logString)
+	}
 	_, err = f.WriteString(logString)
 	if err != nil {
 		fmt.Println(err)

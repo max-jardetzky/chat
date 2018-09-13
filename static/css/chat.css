@@ -1,101 +1,123 @@
 /* chat.css */
 body {
-    background-color: #222f3e;
+    background-color: #222f3e !important;
     padding: 0px;
     margin: 0px;
+    font-family: Verdana, Geneva, sans-serif;
     overflow: hidden;
 }
 
-#topbar {
-    background-color: #222f3e;
-    position: fixed;
-    margin-top: 1%;
-    margin-left: 1%;
-    margin-right: 1%;
-    width: 96%;
-    height: 9%;
-    padding-left: 1%;
-    padding-right: 1%;
-    font-size: 75%;
+#main {
     text-align: center;
-}
-
-#topbar h1 {
-    margin-top: 0%;
-}
-
-#output {
-    float: right;
-    background-color: #0abde3;
-    margin-top: 7%;
-    margin-bottom: 1%;
-    margin-left: 1%;
-    margin-right: 1%;
-    width: 96%;
-    height: 73%;
-    padding-top: 1%;
-    padding-left: 1%;
-    padding-right: 1%;
-    overflow: auto;
 }
 
 #input {
-    position: fixed;
-    bottom: 2%;
-    margin-left: 1%;
-    width: 98%;
-    height: 9%;
-    padding-left: 1%;
-    padding-right: 1%;
-    font-size: 150%;
+    width: 100%;
+    border: 0.1em solid #0abde3 !important;
+    border-radius: 1.5rem !important;
 }
 
+#output {
+    height: 75vh;
+    text-align: left;
+    overflow: auto;
+    border: 0.25em solid #0abde3 !important;
+    border-radius: 1.5rem !important;
+}
 .msg {
-    color: #222f3e;
-    margin-top: 0%;
-    margin-bottom: 0%;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 125%;
+    color: #0abde3;
+    font-size: 1.5vw;
     word-wrap: break-word;
+    margin: 0px;
 }
 
-#login {
-    width: 100%;
+#loginContainer {    
+    background-color: #222f3e;
     height: 100%;
-    text-align: center;
-    display: table;
-}
-
-#content {
-    padding-bottom: 15%;
-    width: 100%;
-    display: table-cell;
-    vertical-align: middle;
+    text-align:center;
 }
 
 #ip {
     color: #48dbfb;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 550%;
-    margin-bottom: 1%;
+    font-size: 3vw;
     word-wrap: break-word;
 }
 
-#directions {
+#welcome {
     color: #48dbfb;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 350%;
-    margin-bottom: 1%;
+    font-size: 5vw;
     word-wrap: break-word;
+}
+
+#inputForm {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.textInput {
+    background-color: #222f3e;
+    color: #0abde3;
+    box-shadow: none;
+    font-size: 2vw;
 }
 
 #nameInput {
-    font-size: 150%;
-    padding: 5px;
+    border: 0px;
 }
 
 #submitButton {
-    font-size: 150%;
-    padding: 5px;
-    font-family: Arial, Helvetica, sans-serif;
+    font-size: 2vw;
+    background-color: #222f3e;
+    color: #0abde3;
+    border: 0.1em solid !important;
+    border-radius: 1.5rem !important;
+    border-color: #0abde3;
+}
+
+.textInput:focus, #submitButton:focus {
+    outline: none;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #0abde3;
+    opacity: 1; /* Firefox */
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+@media (pointer:coarse) {
+    /* custom css for "touch targets" */
+    #inputForm {
+        flex-direction: column;
+    }
+    
+    .msg {
+        font-size: 6vw;
+    }
+
+    #ip {
+        font-size: 12vw;
+    }
+
+    #welcome {
+        font-size: 20vw;
+    }
+
+    .textInput {
+        font-size: 8vw;
+    }
+
+    #nameInput {
+        text-align: center;
+    }
+
+    #submitButton {
+        font-size: 8vw;
+        border: 4px solid;
+        border-radius: 0.75rem;
+    }
 }

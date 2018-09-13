@@ -6,18 +6,20 @@ var input;
 var output;
 var socket;
 var subIndex;
+var msgCount;
 
+nameInput = document.getElementById("nameInput")
+main = document.getElementById("main");
 input = document.getElementById("input");
 output = document.getElementById("output");
-content = document.getElementById("content");
-topbar = document.getElementById("topbar")
+topbar = document.getElementById("topbar");
 
 nameInput.focus();
 
 var ipText = document.createElement("h1");
 ipText.setAttribute("id", "ip")
 ipText.innerHTML = "IP: " + windowAddr;
-content.insertBefore(ipText, content.firstChild)
+loginContainer.insertBefore(ipText, loginContainer.firstChild)
 
 document.getElementById("nameInput").addEventListener("keyup", function(event) {
     event.preventDefault();
@@ -26,12 +28,19 @@ document.getElementById("nameInput").addEventListener("keyup", function(event) {
     }
 });
 
+function submitUsername() {
+    if (nameInput.value != "") {
+        openSocket();
+    }
+}
+
 function openSocket() {
     name = nameInput.value;
-    document.getElementById("login").remove();
+    document.getElementById("loginContainer").remove();
     for (let el of document.querySelectorAll('.main')) el.style.display = 'block';
-    topbar.insertBefore(ipText, topbar.firstChild)
+    main.insertBefore(ipText, main.firstChild)
     input.focus();
+    msgCount = 0;
 
     socket = new WebSocket("ws://" + windowAddr + ":80/chat");
 
@@ -48,9 +57,12 @@ function openSocket() {
         msg.className = "msg";
         msg.innerText = displayMsg;
         
-        output.appendChild(msg)
-        output.appendChild(document.createElement("br"))
+        if (msgCount > 0) {
+            output.appendChild(document.createElement("br"));
+        }
+        output.appendChild(msg);
         output.scrollTop = output.scrollHeight;
+        msgCount++;
     }
 
     document.getElementById("input").addEventListener("keyup", function(event) {
