@@ -74,11 +74,11 @@ function openSocket() {
                     break;
                 case "/users":
                     $.ajax({
-						url: "http://" + windowAddr + "/users",
-						method: "GET",
-						success: function(data) {
-							display(data)
-						},
+					    url: "http://" + windowAddr + "/users",
+					    method: "GET",
+					    success: function(data) {
+					    	display(data)
+					    },
 					});
                     break;
                 case "/clear":
