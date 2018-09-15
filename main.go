@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -30,8 +31,14 @@ type Client struct {
 	msgCount int
 }
 
+// SafeClientList binds clients with a mutex structure to prevent race conditions.
+type SafeClientList struct {
+	mutex   sync.Mutex
+	clients []*Client
+}
+
 var srv *http.Server
-var clientList []*Client
+var clientList SafeClientList
 var f *os.File
 var mutedIPs map[string]bool
 var err error
@@ -41,7 +48,9 @@ var printDisabled bool
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	srv = &http.Server{Addr: ":80"}
-	clientList = make([]*Client, 0)
+	clientList = SafeClientList{
+		clients: make([]*Client, 0),
+	}
 	mutedIPs = map[string]bool{}
 	initTimeStr := strings.Replace(time.Now().String()[:19], ":", "-", -1)
 	fmt.Println("Server startup process initiated. Type `help` for help.")
@@ -86,7 +95,9 @@ func launchHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err == nil {
 		client := &Client{conn, "", "", 0}
-		clientList = append(clientList, client)
+		clientList.mutex.Lock()
+		clientList.clients = append(clientList.clients, client)
+		clientList.mutex.Unlock()
 
 		defer func() {
 			leavingMsg := client.name + " left."
@@ -197,13 +208,17 @@ func sendClient(client *Client, msg string) {
 }
 
 func sendAll(msg string) {
-	for _, v := range clientList {
+	defer clientList.mutex.Unlock()
+	clientList.mutex.Lock()
+	for _, v := range clientList.clients {
 		sendClient(v, msg)
 	}
 }
 
 func sendIP(ip, msg string) {
-	for _, v := range clientList {
+	defer clientList.mutex.Unlock()
+	clientList.mutex.Lock()
+	for _, v := range clientList.clients {
 		if v.ip == ip {
 			sendClient(v, msg)
 		}
@@ -211,8 +226,10 @@ func sendIP(ip, msg string) {
 }
 
 func validIP(ip string) bool {
+	clientList.mutex.Lock()
+	defer clientList.mutex.Unlock()
 	isValid := false
-	for _, v := range clientList {
+	for _, v := range clientList.clients {
 		if v.ip == ip {
 			isValid = true
 		}
@@ -235,8 +252,10 @@ func shutdown(reason string) {
 	inShutdown = true
 	shutdownString := "(SERVER) Shutdown by " + reason + "."
 	log(shutdownString)
-	for _, v := range clientList {
-		sendIP(v.ip, shutdownString)
+	sendAll(shutdownString)
+	defer clientList.mutex.Unlock()
+	clientList.mutex.Lock()
+	for _, v := range clientList.clients {
 		if err = v.conn.Close(); err != nil {
 			fmt.Println(err)
 		}
@@ -248,9 +267,11 @@ func shutdown(reason string) {
 }
 
 func delete(client *Client) {
-	for i, v := range clientList {
+	defer clientList.mutex.Unlock()
+	clientList.mutex.Lock()
+	for i, v := range clientList.clients {
 		if reflect.DeepEqual(client, v) {
-			clientList = append(clientList[:i], clientList[i+1:]...)
+			clientList.clients = append(clientList.clients[:i], clientList.clients[i+1:]...)
 			break
 		}
 	}
@@ -258,11 +279,13 @@ func delete(client *Client) {
 
 func getUsers(admin bool) string {
 	var userList string
-	if len(clientList) == 0 {
+	defer clientList.mutex.Unlock()
+	clientList.mutex.Lock()
+	if len(clientList.clients) == 0 {
 		userList = "No connected users."
 	} else {
-		userList = "Connected users (" + strconv.Itoa(len(clientList)) + "): "
-		for _, v := range clientList {
+		userList = "Connected users (" + strconv.Itoa(len(clientList.clients)) + "): "
+		for _, v := range clientList.clients {
 			userList += v.name
 			if admin {
 				userList += " (" + v.ip
@@ -280,7 +303,10 @@ func getUsers(admin bool) string {
 
 func mute(mute bool) {
 	scanner := bufio.NewScanner(os.Stdin)
-	if len(clientList) > 0 {
+	clientList.mutex.Lock()
+	numClients := len(clientList.clients)
+	clientList.mutex.Unlock()
+	if numClients > 0 {
 		var ip string
 		for {
 			fmt.Print("Enter IP to mute (`users` for list, `cancel` to cancel): ")
