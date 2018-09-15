@@ -65,7 +65,7 @@ func main() {
 	addrs, _ := net.LookupIP(host)
 	for _, addr := range addrs {
 		if ipv4 := addr.To4(); ipv4 != nil {
-			log("Listening on: " + ipv4.String())
+			logEvent("Listening on: " + ipv4.String())
 		}
 	}
 
@@ -104,9 +104,9 @@ func launchHTTP(w http.ResponseWriter, r *http.Request) {
 
 		defer func() {
 			leavingMsg := client.name + " left."
-			delete(client)
+			deleteClient(client)
 			if !inShutdown {
-				log(leavingMsg)
+				logEvent(leavingMsg)
 				sendAll(leavingMsg)
 			}
 		}()
@@ -134,14 +134,13 @@ func launchHTTP(w http.ResponseWriter, r *http.Request) {
 				if val, ok := mutedIPs[client.ip]; val && ok {
 					connectMsg += " (MUTED)"
 				}
-				log(client.name + " (" + client.ip + ")" + connectMsg)
+				logEvent(client.name + " (" + client.ip + ")" + connectMsg)
 				sendAll(client.name + connectMsg)
 			} else { // Any subsequent incoming messages and mute handling
 				if val, ok := mutedIPs[client.ip]; val && ok {
 					sendIP(client.ip, "(SERVER) Muted.")
 				} else {
 					totalMsg := " says: " + string(msg)
-					log(client.name + " (" + client.ip + ")" + totalMsg)
 					sendAll(client.name + totalMsg)
 				}
 			}
@@ -159,7 +158,7 @@ func launchCLI() {
 		case "say":
 			fmt.Print("Enter message: ")
 			scanner.Scan()
-			log("SERVER: " + scanner.Text())
+			logEvent("SERVER: " + scanner.Text())
 			sendAll("SERVER: " + scanner.Text())
 		case "users":
 			fmt.Println(getUsers(true))
@@ -179,7 +178,7 @@ func launchCLI() {
 				err = os.Remove(filepath.Join("logs", files[i].Name()))
 				check(err)
 			}
-			log("Deleted previous logs.")
+			logEvent("Deleted previous logs.")
 		case "shutdown":
 			for {
 				fmt.Print("Are you sure? (y/n) ")
@@ -240,7 +239,7 @@ func validIP(ip string) bool {
 	return isValid
 }
 
-func log(msg string) {
+func logEvent(msg string) {
 	logString := "[" + time.Now().String()[11:19] + "] " + msg + "\r\n"
 	if !printDisabled {
 		fmt.Print(logString)
@@ -254,7 +253,7 @@ func log(msg string) {
 func shutdown(reason string) {
 	inShutdown = true
 	shutdownString := "(SERVER) Shutdown by " + reason + "."
-	log(shutdownString)
+	logEvent(shutdownString)
 	sendAll(shutdownString)
 	defer clientList.mutex.Unlock()
 	clientList.mutex.Lock()
@@ -269,7 +268,7 @@ func shutdown(reason string) {
 	}
 }
 
-func delete(client *Client) {
+func deleteClient(client *Client) {
 	defer clientList.mutex.Unlock()
 	clientList.mutex.Lock()
 	for i, v := range clientList.clients {
@@ -329,10 +328,10 @@ func mute(mute bool) {
 			mutedIPs[ip] = mute
 			if mute {
 				sendIP(ip, "(SERVER) Muted.")
-				log(ip + " muted.")
+				logEvent(ip + " muted.")
 			} else {
 				sendIP(ip, "(SERVER) Unmuted.")
-				log(ip + " unmuted.")
+				logEvent(ip + " unmuted.")
 			}
 		}
 	} else {
