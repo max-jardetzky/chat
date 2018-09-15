@@ -79,7 +79,10 @@ func main() {
 		fmt.Fprintln(w, getUsers(false))
 	})
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	srv.ListenAndServe()
+	err = srv.ListenAndServe()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func launchHTTP(w http.ResponseWriter, r *http.Request) {
