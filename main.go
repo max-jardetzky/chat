@@ -79,14 +79,14 @@ func main() {
 	// Admin commands from console
 	go launchCLI()
 
-	http.HandleFunc("/chat", launchHTTP)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/chat/chat", launchHTTP)
+	http.HandleFunc("/chat", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "index.html")
 	})
-	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/chat/users", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, getUsers(false))
 	})
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.Handle("/chat/static/", http.StripPrefix("/chat/static", http.FileServer(http.Dir("static"))))
 	err = srv.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)

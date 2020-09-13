@@ -1,6 +1,6 @@
 // chat.js
 for (let el of document.querySelectorAll('.main')) el.style.display = 'none'; 
-var windowAddr = window.location.href.substring(window.location.href.indexOf("/", window.location.href.indexOf("/") + 1) + 1, window.location.href.length - 1);
+var windowAddr = window.location.href.substring(window.location.href.indexOf("/", window.location.href.indexOf("/") + 1) + 1, window.location.href.length);
 var name;
 var input;
 var output;
@@ -42,7 +42,10 @@ function openSocket() {
     input.focus();
     msgCount = 0;
 
-    socket = new WebSocket("ws://" + windowAddr + ":80/chat");
+    //socket = new WebSocket("ws://" + windowAddr + ":80/chat");
+    //socket = new WebSocket("ws://" + windowAddr + ":80/chat/chat");
+    //socket = new WebSocket("ws://10.63.1.244:80/chat/chat");
+    socket = new WebSocket("ws://" + windowAddr.substring(0, windowAddr.indexOf("/")) + ":80/chat/chat");
 
     socket.onopen = function() {
         socket.send(name);
