@@ -46,7 +46,7 @@ var inShutdown bool
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	srv = &http.Server{Addr: ":80"}
+	srv = &http.Server{Addr: ":8080"}
 	clientList = SafeClientList{
 		clients: make([]*Client, 0),
 	}
