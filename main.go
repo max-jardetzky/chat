@@ -145,6 +145,8 @@ func launchHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			client.msgCount++
 		}
+	} else {
+		fmt.Println(err)
 	}
 }
 
