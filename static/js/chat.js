@@ -45,7 +45,7 @@ function openSocket() {
     //socket = new WebSocket("ws://" + windowAddr + ":80/chat");
     //socket = new WebSocket("ws://" + windowAddr + ":80/chat/chat");
     //socket = new WebSocket("ws://10.63.1.244:80/chat/chat");
-    socket = new WebSocket("ws://" + windowAddr.substring(0, windowAddr.indexOf("/")) + "/chat/chat");
+    socket = new WebSocket("ws://" + windowAddr.substring(0, windowAddr.indexOf("/")) + ":8080/chat/chat");
 
     socket.onopen = function() {
         socket.send(name);
