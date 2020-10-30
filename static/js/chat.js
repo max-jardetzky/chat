@@ -86,6 +86,7 @@ function openSocket() {
                     break;
                 case "/clear":
                     output.innerHTML = "";
+                    msgCount = 0;
                     display("Chat cleared.");
                     break;
                 default:
